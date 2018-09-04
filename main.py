@@ -21,25 +21,25 @@ class Game:
 				print(self.board[row][col], end=' ')
 			print()
 
-	def move(self, slot):
+	def move(self, slot, board):
 		if slot < 7 and slot >= 0:
 			if self.player_to_move == "white":
-				if self.board[0][slot] != BLANK:
+				if board[0][slot] != BLANK:
 					print("slot is full u fuck, try again")
 				else:
 					height = 5
-					while self.board[height][slot] != BLANK and height > 0:
+					while board[height][slot] != BLANK and height > 0:
 						height -= 1;
-					self.board[height][slot] = "W"
+					board[height][slot] = "W"
 					self.player_to_move = "black"
 			elif self.player_to_move == "black":
-				if self.board[0][slot] != BLANK:
+				if board[0][slot] != BLANK:
 					print("slot is full u fuck, try again")
 				else:
 					height = 5
-					while self.board[height][slot] != BLANK and height > 0:
+					while board[height][slot] != BLANK and height > 0:
 						height -= 1;
-					self.board[height][slot] = "B"
+					board[height][slot] = "B"
 					self.player_to_move = "white"
 		elif slot == "q" or slot == "Q" or slot == "quit":
 				self.playing = False
@@ -47,7 +47,7 @@ class Game:
 			print("U fucked up. not a slot")
 
 		self.printBoard()
-		self.check_board()
+		return board, self.check_board()
 
 	# Check for victory (i.e. 4-in-a-row)
 	def check_board(self):
@@ -62,7 +62,10 @@ class Game:
 					if count == 4: 
 						print(curr_val, "wins!")
 						self.playing = False
-						return
+						if self.player_to_move == "white":
+							return 1
+						else:
+							return -1
 				else: 
 					count = 1
 				curr_val = self.board[row][column]
@@ -87,7 +90,10 @@ class Game:
 						# Set playing to false so the game knows not to play anymore
 						self.playing = False
 						# Exit the function
-						return
+						if self.player_to_move == "white":
+							return 1
+						else:
+							return -1
 				# If the next value in the column is different from the previous value
 				else:
 					# Reset count to 1
@@ -101,24 +107,101 @@ class Game:
 				if self.board[row][column] == self.board[row+1][column+1] == self.board[row+2][column+2] == self.board[row+3][column+3] != BLANK:
 					print(self.board[row][column], "wins!")
 					self.playing = False
-					return
+					if self.player_to_move == "white":
+						return 1
+					else:
+						return -1
 		for row in range(4, 6):
 			for column in range(4):
 				if self.board[row][column] == self.board[row-1][column+1] == self.board[row-2][column+2] == self.board[row-3][column+3] != BLANK:
 					print(self.board[row][column], "wins!")
 					self.playing = False
-					return
+					if self.player_to_move == "white":
+						return 1
+					else:
+						return -1
 
-	def play(self):
-		self.printBoard()
-		while self.playing == True:
+		# If no one has won, return 0
+
+	def isPlaying(self):
+		return self.playing
+
+	def getBoard(self):
+		return self.board
+
+	def getPlayerToMove(self):
+		return self.player_to_move
+
+class ComputerPlayer:
+
+	def __init__(self, name):
+		self.name = name
+
+	def play(self, game):
+		self.game = game
+		self.game.printBoard()
+		while self.game.isPlaying():
+			os.system('clear')
+			move = self.minimax(self.game.getBoard(), self.game.getPlayerToMove())
+			print(move)
+			self.game.move(move, self.game.getBoard())
+
+	def minimax(self, board, player_to_move):
+		children = []
+		for i in range(7):
+			board, score = self.game.move(i, board)
+			if player_to_move == "white" and score == 1:
+				print("return 1")
+				return 1
+			elif player_to_move == "black" and score == -1:
+				print("return 1")
+				return 1
+			else:
+				children.append(board)
+
+		if player_to_move == "white":
+			return self.max(children)
+		else:
+			return self.min(children)
+
+	def max(self, children):
+		curr_val = self.minimax(children[0], "white")
+		move = 0
+		for i in range(1, 7):
+			move_currently_exploring = self.minimax(children[i], "white")
+			if move_currently_exploring > curr_val:
+				curr_val = move_currently_exploring
+				move = i
+		print("return move", move)
+		return move
+
+	def min(self, children):
+		curr_val = self.minimax(children[0], "black")
+		move = 0
+		for i in range(1, 7):
+			move_currently_exploring = self.minimax(children[i], "black")
+			if move_currently_exploring < curr_val:
+				curr_val = move_currently_exploring
+				move = i
+		return move
+
+class HumanPlayer:
+
+	def __init__(self, name):
+		self.name = name
+
+	def play(self, game):
+		game.printBoard()
+		while game.isPlaying():
 			command = input("What move would you like to play? \n")
 			os.system('clear')
-			self.move(int(command) - 1)
+			game.move(int(command) - 1, game.getBoard())
+
 
 def main():
 	game = Game()
-	game.play()
+	player = ComputerPlayer("computer")
+	player.play(game)
 
 if __name__ == "__main__":
     main()
