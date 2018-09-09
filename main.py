@@ -137,19 +137,36 @@ class ComputerPlayer:
 	def __init__(self, name):
 		self.name = name
 
+		# When performing minimax, we will be manipulating this mental board
+		self.mental_game = Game()
+
 	def play(self, game):
-		self.game = game
-		self.game.printBoard()
-		while self.game.isPlaying():
+		# Establish real game
+		self.real_game = game
+
+		# Print Board
+		self.real_game.printBoard()
+
+		# Play until game is over
+		while self.real_game.isPlaying():
+
+			# Clear the terminal (purely aesthetic)
 			os.system('clear')
-			move = self.minimax(self.game.getBoard(), self.game.getPlayerToMove())
-			print(move)
-			self.game.move(move, self.game.getBoard())
+
+			# Decide move
+			move = self.minimax(self.real_game.getBoard(), self.real_game.getPlayerToMove())
+
+			# Make move
+			self.real_game.move(move, self.real_game.getBoard())
 
 	def minimax(self, board, player_to_move):
+		# There are 7 possible moves (i.e. slots to place a tile). Store each possibility here.
 		children = []
+
+		# Iterate through each possibility
 		for i in range(7):
-			board, score = self.game.move(i, board)
+			self.mental_game = self.real_game
+			board, score = self.mental_game.move(i, board)
 			if player_to_move == "white" and score == 1:
 				print("return 1")
 				return 1
